@@ -9,22 +9,41 @@ pipeline {
     stages {
         stage('Deploy CloudFormation Stack') {
             steps {
-                withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS) {
-                    cfnCreateOrUpdate(stack: env.STACK_NAME,
-                                      file: env.TEMPLATE_FILE,
-                                      pollInterval: 1000,
-                                      pollTimeout: 900000,
-                                      capabilities: ['CAPABILITY_NAMED_IAM'])
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: env.AWS_CREDENTIALS,
+                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                ]]) {
+                    sh '''
+                        aws cloudformation deploy \
+                            --stack-name "$STACK_NAME" \
+                            --template-file "$TEMPLATE_FILE" \
+                            --region "$AWS_REGION" \
+                            --capabilities CAPABILITY_NAMED_IAM
+                    '''
                 }
             }
         }
         stage('Fetch Access Keys') {
             steps {
-                withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS) {
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: env.AWS_CREDENTIALS,
+                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                ]]) {
                     script {
-                        def outputs = cfnDescribe(stack: env.STACK_NAME).stackOutputs
-                        echo "AccessKeyId: ${outputs['AccessKeyId']}"
-                        echo "SecretAccessKey: ${outputs['SecretAccessKey']}"
+                        def accessKeyId = sh(
+                            script: "aws cloudformation describe-stacks --stack-name ${env.STACK_NAME} --region ${env.AWS_REGION} --query 'Stacks[0].Outputs[?OutputKey==\'AccessKeyId\'].OutputValue' --output text",
+                            returnStdout: true
+                        ).trim()
+                        def secretAccessKey = sh(
+                            script: "aws cloudformation describe-stacks --stack-name ${env.STACK_NAME} --region ${env.AWS_REGION} --query 'Stacks[0].Outputs[?OutputKey==\'SecretAccessKey\'].OutputValue' --output text",
+                            returnStdout: true
+                        ).trim()
+                        echo "AccessKeyId: ${accessKeyId}"
+                        echo "SecretAccessKey: ${secretAccessKey}"
                     }
                 }
             }
