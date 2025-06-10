@@ -35,11 +35,11 @@ pipeline {
                 ]]) {
                     script {
                         def accessKeyId = sh(
-                            script: "aws cloudformation describe-stacks --stack-name ${env.STACK_NAME} --region ${env.AWS_REGION} --query 'Stacks[0].Outputs[?OutputKey==\'AccessKeyId\'].OutputValue' --output text",
+                            script: "aws cloudformation describe-stacks --stack-name ${env.STACK_NAME} --region ${env.AWS_REGION} --query \"Stacks[0].Outputs[?OutputKey=='AccessKeyId'].OutputValue\" --output text",
                             returnStdout: true
                         ).trim()
                         def secretAccessKey = sh(
-                            script: "aws cloudformation describe-stacks --stack-name ${env.STACK_NAME} --region ${env.AWS_REGION} --query 'Stacks[0].Outputs[?OutputKey==\'SecretAccessKey\'].OutputValue' --output text",
+                            script: "aws cloudformation describe-stacks --stack-name ${env.STACK_NAME} --region ${env.AWS_REGION} --query \"Stacks[0].Outputs[?OutputKey=='SecretAccessKey'].OutputValue\" --output text",
                             returnStdout: true
                         ).trim()
                         echo "AccessKeyId: ${accessKeyId}"
