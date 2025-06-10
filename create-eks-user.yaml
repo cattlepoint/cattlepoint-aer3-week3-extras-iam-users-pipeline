@@ -1,0 +1,75 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: IAM user (eks-deploy) with permissions to build the basic-eks CloudFormation stack.
+
+Resources:
+  EksDeployUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: eks-deploy
+
+  EksDeployPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: eks-deploy-permissions
+      Users: [!Ref EksDeployUser]
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          # CloudFormation pipeline actions
+          - Effect: Allow
+            Action:
+              - cloudformation:ValidateTemplate
+              - cloudformation:CreateStack
+              - cloudformation:UpdateStack
+              - cloudformation:DeleteStack
+              - cloudformation:DescribeStacks
+              - cloudformation:CreateChangeSet
+              - cloudformation:DescribeChangeSet
+              - cloudformation:ExecuteChangeSet
+            Resource: "*"
+
+          # Allow creation and pass-through of IAM roles defined in the stack
+          - Effect: Allow
+            Action:
+              - iam:CreateRole
+              - iam:DeleteRole
+              - iam:AttachRolePolicy
+              - iam:DetachRolePolicy
+              - iam:PutRolePolicy
+              - iam:PassRole
+            Resource: "*"
+
+          # EKS cluster and node-group operations (Create*, Describe*, Delete*, etc.)
+          - Effect: Allow
+            Action: eks:*
+            Resource: "*"
+
+          # VPC, subnet and EC2 primitives needed by the stack
+          - Effect: Allow
+            Action: ec2:*
+            Resource: "*"
+
+          # Optional ECR access if you later add image pushes
+          - Effect: Allow
+            Action:
+              - ecr:GetAuthorizationToken
+              - ecr:CreateRepository
+              - ecr:DescribeRepositories
+            Resource: "*"
+
+  EksDeployAccessKey:
+    Type: AWS::IAM::AccessKey
+    Properties:
+      UserName: !Ref EksDeployUser
+      Status: Active
+
+Outputs:
+  AccessKeyId:
+    Value: !Ref EksDeployAccessKey
+    Description: eks-deploy access key ID
+  SecretAccessKey:
+    Value: !GetAtt EksDeployAccessKey.SecretAccessKey
+    Description: Secret access key (displayed once—store securely)
+  EksDeployUserArn:
+    Value: !GetAtt EksDeployUser.Arn
+    Description: ARN of the eks-deploy IAM user
