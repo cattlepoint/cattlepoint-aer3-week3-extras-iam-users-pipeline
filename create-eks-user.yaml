@@ -26,6 +26,7 @@ Resources:
               - cloudformation:CreateChangeSet
               - cloudformation:DescribeChangeSet
               - cloudformation:ExecuteChangeSet
+              - cloudformation:GetTemplateSummary
             Resource: "*"
 
           # Allow creation, retrieval (iam:GetRole) and pass-through of IAM roles
