@@ -28,7 +28,10 @@ Resources:
               - cloudformation:ExecuteChangeSet
             Resource: "*"
 
-          # Allow creation and pass-through of IAM roles defined in the stack
+          # Allow creation, retrieval (iam:GetRole) and pass-through of IAM roles
+          # only when the role name includes "ClusterRole". This limits permissions so
+          # the user can manage cluster roles created by the stack without
+          # exposing broader IAM control.
           - Effect: Allow
             Action:
               - iam:CreateRole
@@ -37,7 +40,8 @@ Resources:
               - iam:DetachRolePolicy
               - iam:PutRolePolicy
               - iam:PassRole
-            Resource: "*"
+              - iam:GetRole
+            Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/*ClusterRole*
 
           # EKS cluster and node-group operations (Create*, Describe*, Delete*, etc.)
           - Effect: Allow
