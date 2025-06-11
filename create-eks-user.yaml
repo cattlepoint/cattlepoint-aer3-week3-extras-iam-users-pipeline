@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: IAM user (eks-deploy) with permissions to build the basic-eks CloudFormation stack.
+Description: IAM user (eks-deploy) with permissions to build and manage the basic-eks CloudFormation stack.
 
 Resources:
   EksDeployUser:
@@ -15,7 +15,7 @@ Resources:
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
-          # CloudFormation pipeline actions
+          # CloudFormation actions
           - Effect: Allow
             Action:
               - cloudformation:ValidateTemplate
@@ -29,10 +29,7 @@ Resources:
               - cloudformation:GetTemplateSummary
             Resource: "*"
 
-          # Allow creation, retrieval (iam:GetRole) and pass-through of IAM roles
-          # only when the role name includes "ClusterRole". This limits permissions so
-          # the user can manage cluster roles created by the stack without
-          # exposing broader IAM control.
+          # IAM role lifecycle + tagging for cluster/node roles
           - Effect: Allow
             Action:
               - iam:CreateRole
@@ -47,21 +44,22 @@ Resources:
               - iam:ListRoleTags
               - iam:TagPolicy
               - iam:UntagPolicy
+              - iam:ListAttachedRolePolicies # ⬅︎ added to fix the new error
             Resource:
               - !Sub arn:aws:iam::${AWS::AccountId}:role/*ClusterRole*
               - !Sub arn:aws:iam::${AWS::AccountId}:role/*NodeRole*
 
-          # EKS cluster and node-group operations (Create*, Describe*, Delete*, etc.)
+          # EKS operations
           - Effect: Allow
             Action: eks:*
             Resource: "*"
 
-          # VPC, subnet and EC2 primitives needed by the stack
+          # VPC, subnet and EC2 primitives
           - Effect: Allow
             Action: ec2:*
             Resource: "*"
 
-          # Optional ECR access if you later add image pushes
+          # Optional ECR access
           - Effect: Allow
             Action:
               - ecr:GetAuthorizationToken
