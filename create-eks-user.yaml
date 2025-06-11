@@ -42,6 +42,11 @@ Resources:
               - iam:PutRolePolicy
               - iam:PassRole
               - iam:GetRole
+              - iam:TagRole
+              - iam:UntagRole
+              - iam:ListRoleTags
+              - iam:TagPolicy
+              - iam:UntagPolicy
             Resource:
               - !Sub arn:aws:iam::${AWS::AccountId}:role/*ClusterRole*
               - !Sub arn:aws:iam::${AWS::AccountId}:role/*NodeRole*
