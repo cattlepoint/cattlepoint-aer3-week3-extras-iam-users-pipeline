@@ -20,6 +20,7 @@ Resources:
               - ecr:CreateRepository
               - ecr:DescribeRepositories
               - ecr:DeleteRepository
+              - ecr:GetAuthorizationToken
             Resource: "*"
           - Effect: Allow
             Action:
