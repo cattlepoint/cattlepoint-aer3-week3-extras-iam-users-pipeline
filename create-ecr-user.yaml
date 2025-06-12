@@ -23,6 +23,7 @@ Resources:
               - ecr:GetAuthorizationToken
               - ecr:InitiateLayerUpload
               - ecr:UploadLayerPart
+              - ecr:CompleteLayerUpload
             Resource: "*"
           - Effect: Allow
             Action:
