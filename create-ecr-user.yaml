@@ -21,6 +21,7 @@ Resources:
               - ecr:DescribeRepositories
               - ecr:DeleteRepository
               - ecr:GetAuthorizationToken
+              - ecr:InitiateLayerUpload
             Resource: "*"
           - Effect: Allow
             Action:
